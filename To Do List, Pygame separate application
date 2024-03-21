@@ -1,0 +1,80 @@
+import pygame
+import sys
+
+pygame.init()
+SCREEN_WIDTH, SCREEN_HEIGHT = 1000, 800
+BG_COLOR = (0, 255, 0)
+TEXT_COLOR = (0, 0, 0)
+FONT_SIZE = 30
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Task Manager')
+font = pygame.font.Font(None, FONT_SIZE)
+name = ''
+tasks = ['Grocery Shopping', 'Work', 'Gym', 'Restocking Fridge']
+current_input = ''
+input_type = 'name'
+task_to_remove = None
+def draw_text(text, x, y, color=TEXT_COLOR):
+    text_surface = font.render(text, True, color)
+    screen.blit(text_surface, (x, y))
+def handle_input(event):
+    global current_input, input_type, name, tasks, task_to_remove
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_RETURN:
+            if input_type == 'name':
+                name = current_input
+                current_input = ''
+                input_type = 'add'
+            elif input_type == 'add':
+                if current_input.lower() == '0':
+                    input_type = 'remove'
+                else:
+                    tasks.append(current_input)
+                current_input = ''
+            elif input_type == 'remove':
+                try:
+                    task_to_remove = int(current_input) - 1
+                except ValueError:
+                    task_to_remove = None
+                current_input = ''
+        elif event.key == pygame.K_BACKSPACE:
+            current_input = current_input[:-1]
+        else:
+            current_input += event.unicode
+
+def main():
+    global task_to_remove
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            handle_input(event)
+
+        screen.fill(BG_COLOR)
+
+        if input_type == 'name':
+            draw_text('What is your name?', 50, 50)
+        elif input_type == 'add':
+            draw_text(f'Hello {name}, would you like to add any tasks? (Enter "0" to enter Remove list):', 50, 50)
+        elif input_type == 'remove':
+            draw_text(f'Hello {name}, what task number do you want to remove from this list? (Enter 0 to QUIT!):', 50, 50)
+
+        draw_text(f'Current input: {current_input}', 50, 100)
+
+        y_offset = 150
+        for i, task in enumerate(tasks, start=1):
+            draw_text(f'{i}. {task}', 50, y_offset)
+            y_offset += FONT_SIZE + 10
+
+        if task_to_remove is not None and 0 <= task_to_remove < len(tasks):
+            removed_task = tasks.pop(task_to_remove)
+            draw_text(f'You have marked off/Finished: {removed_task}', 50, y_offset)
+            task_to_remove = None
+
+        pygame.display.flip()
+
+    pygame.quit()
+
+if _name_ == '_main_':
+    main()
